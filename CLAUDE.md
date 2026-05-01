@@ -6,7 +6,7 @@ This project runs on Next.js 16 (see `package.json`). The Next.js you may have l
 
 ## Stack
 
-Next.js 16 App Router + TypeScript (strict) + Tailwind v4 + Drizzle (`neon-http`) + Neon Postgres + recharts.
+Next.js 16 App Router + TypeScript (strict) + Tailwind v4 + Drizzle (`node-postgres`) + Postgres on Railway + recharts.
 
 ## Where things live
 
@@ -15,7 +15,7 @@ Next.js 16 App Router + TypeScript (strict) + Tailwind v4 + Drizzle (`neon-http`
 - Sync logic: `src/lib/sync/sync.ts` (idempotent; dedupes match IDs across roster)
 - Stats: `src/lib/stats/{leaderboard,awards,player,ranks,splits}.ts`
 - Pages: `src/app/page.tsx` (home), `src/app/players/[puuid]/page.tsx`
-- Cron: `vercel.json` -> `POST /api/sync` every 30 min, gated by `Bearer $CRON_SECRET`
+- Cron: `.github/workflows/sync.yml` (GitHub Actions) hits `POST /api/sync` every 30 min, gated by `Bearer $CRON_SECRET`
 - Config: `src/config/{roster,splits}.ts`
 
 ## Conventions

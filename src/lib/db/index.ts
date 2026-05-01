@@ -1,8 +1,8 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
+import { Pool } from "pg";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
-type DbClient = NeonHttpDatabase<typeof schema>;
+type DbClient = NodePgDatabase<typeof schema>;
 
 let cached: DbClient | undefined;
 
@@ -13,12 +13,17 @@ function init(): DbClient {
       "DATABASE_URL is not set. Add it to .env.local (and your deployment env).",
     );
   }
-  const sql = neon(databaseUrl);
-  return drizzle(sql, { schema });
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    // Railway public URLs require SSL; node-postgres reads sslmode from the URL,
+    // but some networks need rejectUnauthorized=false to accept Railway's cert.
+    ssl: databaseUrl.includes("sslmode=disable")
+      ? false
+      : { rejectUnauthorized: false },
+  });
+  return drizzle(pool, { schema });
 }
 
-// Proxy so importing `db` doesn't trigger a connection during `next build`.
-// Each property access lazily initializes the real client on first use.
 export const db = new Proxy({} as DbClient, {
   get(_, prop, receiver) {
     cached ??= init();
