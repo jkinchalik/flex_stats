@@ -263,11 +263,18 @@ async function refreshRank(
     .orderBy(desc(rankHistory.recordedAt))
     .limit(1);
 
-  const changed =
+  // consistent timeline for LP race chart: cap at ~1 row/hour/puuid even when rank is unchanged
+  const latestRow = latest[0];
+  const rankChanged =
     latest.length === 0 ||
-    latest[0].tier !== tier ||
-    latest[0].division !== division ||
-    latest[0].lp !== lp;
+    latestRow.tier !== tier ||
+    latestRow.division !== division ||
+    latestRow.lp !== lp;
+  const staleSnapshot =
+    latestRow !== undefined &&
+    latestRow.recordedAt !== null &&
+    Date.now() - latestRow.recordedAt.getTime() > 60 * 60 * 1000;
+  const changed = rankChanged || staleSnapshot;
 
   if (changed) {
     await db.insert(rankHistory).values({
