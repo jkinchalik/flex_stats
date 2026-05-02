@@ -1,7 +1,7 @@
-import Link from "next/link";
 import type { FeedMatch } from "@/lib/stats/feed";
 import { formatRelative } from "@/lib/stats/_shared/buckets";
 import { colorForPuuid } from "@/lib/stats/_shared/palette";
+import { MatchDetailPanel } from "@/components/match-detail-panel";
 
 type Props = {
   matches: FeedMatch[];
@@ -33,54 +33,61 @@ export function MatchFeed({ matches }: Props) {
 
             return (
               <li key={`${m.matchId}-${m.puuid}`}>
-                <Link
-                  href={`/players/${m.puuid}`}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5"
-                >
-                  {/* Friend initial circle */}
-                  <span
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-zinc-900"
-                    style={{ backgroundColor: color }}
-                  >
-                    {initial}
-                  </span>
+                <details className="group">
+                  <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5">
+                    {/* Expand indicator */}
+                    <span className="shrink-0 select-none text-zinc-500 transition-transform group-open:rotate-90">
+                      ▶
+                    </span>
 
-                  {/* Display name */}
-                  <span className="w-28 shrink-0 truncate font-medium text-zinc-100">
-                    {m.displayName}
-                  </span>
+                    {/* Friend initial circle */}
+                    <span
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-zinc-900"
+                      style={{ backgroundColor: color }}
+                    >
+                      {initial}
+                    </span>
 
-                  {/* W/L pill */}
-                  <span
-                    className={
-                      m.win
-                        ? "inline-flex h-5 w-6 shrink-0 items-center justify-center rounded bg-emerald-500/20 text-xs font-bold text-emerald-300"
-                        : "inline-flex h-5 w-6 shrink-0 items-center justify-center rounded bg-rose-500/20 text-xs font-bold text-rose-300"
-                    }
-                  >
-                    {m.win ? "W" : "L"}
-                  </span>
+                    {/* Display name */}
+                    <span className="w-28 shrink-0 truncate font-medium text-zinc-100">
+                      {m.displayName}
+                    </span>
 
-                  {/* Champion */}
-                  <span className="w-24 shrink-0 truncate text-zinc-200">
-                    {m.championName}
-                  </span>
+                    {/* W/L pill */}
+                    <span
+                      className={
+                        m.win
+                          ? "inline-flex h-5 w-6 shrink-0 items-center justify-center rounded bg-emerald-500/20 text-xs font-bold text-emerald-300"
+                          : "inline-flex h-5 w-6 shrink-0 items-center justify-center rounded bg-rose-500/20 text-xs font-bold text-rose-300"
+                      }
+                    >
+                      {m.win ? "W" : "L"}
+                    </span>
 
-                  {/* K/D/A */}
-                  <span className="tabular-nums text-zinc-300">
-                    {m.kills}/{m.deaths}/{m.assists}
-                  </span>
+                    {/* Champion */}
+                    <span className="w-24 shrink-0 truncate text-zinc-200">
+                      {m.championName}
+                    </span>
 
-                  {/* CS */}
-                  <span className="tabular-nums text-zinc-400">
-                    {m.cs} cs
-                  </span>
+                    {/* K/D/A */}
+                    <span className="tabular-nums text-zinc-300">
+                      {m.kills}/{m.deaths}/{m.assists}
+                    </span>
 
-                  {/* Time ago — pushed to the right */}
-                  <span className="ml-auto shrink-0 tabular-nums text-zinc-500">
-                    {formatRelative(m.gameCreation)}
-                  </span>
-                </Link>
+                    {/* CS */}
+                    <span className="tabular-nums text-zinc-400">
+                      {m.cs} cs
+                    </span>
+
+                    {/* Time ago — pushed to the right */}
+                    <span className="ml-auto shrink-0 tabular-nums text-zinc-500">
+                      {formatRelative(m.gameCreation)}
+                    </span>
+                  </summary>
+
+                  {/* Lazy-loaded match detail */}
+                  <MatchDetailPanel matchId={m.matchId} />
+                </details>
               </li>
             );
           })}

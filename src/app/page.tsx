@@ -3,7 +3,9 @@ import { AwardCard } from "@/components/award-card";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { LpRaceChart } from "@/components/lp-race-chart";
 import { MatchFeed } from "@/components/match-feed";
+import { PerformanceTabs } from "@/components/performance-tabs";
 import { PremadeRecord } from "@/components/premade-record";
+import { RecordsGrid } from "@/components/records-grid";
 import { SynergyMatrix } from "@/components/synergy-matrix";
 import { Tabs } from "@/components/tabs";
 import { WeeklyRecap } from "@/components/weekly-recap";
@@ -12,9 +14,17 @@ import { getActivityHeatmap } from "@/lib/stats/activity";
 import { computeAwards } from "@/lib/stats/awards";
 import { getLeaderboard } from "@/lib/stats/leaderboard";
 import { getRecentSquadMatches } from "@/lib/stats/feed";
+import {
+  getPerformanceLeaderboards,
+  type PerformanceBoards,
+} from "@/lib/stats/performance";
 import { getPremadeRecord, type PremadeSummary } from "@/lib/stats/premades";
 import { getRankRaceData } from "@/lib/stats/race";
 import { getWeeklyRecap, type WeeklyRecap as WeeklyRecapData } from "@/lib/stats/recap";
+import {
+  getRecordsAndShame,
+  type RecordsAndShame,
+} from "@/lib/stats/records";
 import { getActiveSplit } from "@/lib/stats/splits";
 import { getDuoSynergy } from "@/lib/stats/synergy";
 
@@ -49,8 +59,27 @@ export default async function Home() {
     worstGame: null,
     hotCold: { hot: null, cold: null },
   };
+  const EMPTY_BOARDS: PerformanceBoards = {
+    dpm: [],
+    kpPct: [],
+    visPerMin: [],
+    gpm: [],
+    csPerMin: [],
+    dmgShare: [],
+  };
+  const EMPTY_RECORDS: RecordsAndShame = { records: [], shame: [] };
 
-  const [rows, raceData, synergy, premades, feed, heatmap, recap] = dbReady
+  const [
+    rows,
+    raceData,
+    synergy,
+    premades,
+    feed,
+    heatmap,
+    recap,
+    perfBoards,
+    recordsData,
+  ] = dbReady
     ? await Promise.all([
         getLeaderboard(split.startsAt, split.endsAt).catch(() => []),
         getRankRaceData(split.startsAt, split.endsAt).catch(() => []),
@@ -61,8 +90,24 @@ export default async function Home() {
         getWeeklyRecap(new Date(), split.startsAt, split.endsAt).catch(
           () => EMPTY_RECAP,
         ),
+        getPerformanceLeaderboards(split.startsAt, split.endsAt).catch(
+          () => EMPTY_BOARDS,
+        ),
+        getRecordsAndShame(split.startsAt, split.endsAt).catch(
+          () => EMPTY_RECORDS,
+        ),
       ])
-    : [[], [], [], EMPTY_PREMADE, [], [], EMPTY_RECAP];
+    : [
+        [],
+        [],
+        [],
+        EMPTY_PREMADE,
+        [],
+        [],
+        EMPTY_RECAP,
+        EMPTY_BOARDS,
+        EMPTY_RECORDS,
+      ];
 
   const awards = dbReady
     ? await computeAwards(rows, split.startsAt, split.endsAt).catch(() => [])
@@ -95,6 +140,10 @@ export default async function Home() {
       </div>
 
       <section>
+        <PerformanceTabs boards={perfBoards} />
+      </section>
+
+      <section>
         <h2 className="mb-4 text-2xl font-bold tracking-tight">
           <span aria-hidden>🎖️</span> Awards
         </h2>
@@ -110,9 +159,7 @@ export default async function Home() {
   const recordsTab = (
     <div className="space-y-12">
       <PremadeRecord summary={premades} minStack={4} />
-      <section className="rounded-xl border border-white/10 bg-zinc-900/40 p-8 text-center text-sm text-zinc-500">
-        Personal records & Hall of Shame coming soon.
-      </section>
+      <RecordsGrid data={recordsData} />
     </div>
   );
 
