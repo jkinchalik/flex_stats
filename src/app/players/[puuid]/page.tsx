@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { ActivityHeatmap } from "@/components/activity-heatmap";
+import { ChampionDonut } from "@/components/champion-donut";
 import { ChampionStatsTable } from "@/components/champion-stats-table";
 import { RankHistoryChart } from "@/components/rank-history-chart";
 import { RecentMatches } from "@/components/recent-matches";
+import { StatSparklineRow } from "@/components/stat-sparkline-row";
+import { getActivityHeatmap } from "@/lib/stats/activity";
 import {
   getChampionStats,
   getPlayerOverview,
@@ -12,6 +16,7 @@ import {
 } from "@/lib/stats/player";
 import { formatRank, TIER_COLORS } from "@/lib/stats/ranks";
 import { getActiveSplit } from "@/lib/stats/splits";
+import { getSquadAverages, getWeeklyTrends } from "@/lib/stats/trends";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 300;
@@ -46,11 +51,15 @@ export default async function PlayerPage({
   }
 
   const split = getActiveSplit();
-  const [rankPoints, recent, champStats] = await Promise.all([
-    getRankHistory(puuid, split.startsAt),
-    getRecentMatches(puuid, 20),
-    getChampionStats(puuid, split.startsAt),
-  ]);
+  const [rankPoints, recent, champStats, weeklyTrends, squadAvg, heatmapCells] =
+    await Promise.all([
+      getRankHistory(puuid, split.startsAt),
+      getRecentMatches(puuid, 20),
+      getChampionStats(puuid, split.startsAt),
+      getWeeklyTrends(puuid, split.startsAt, split.endsAt),
+      getSquadAverages(split.startsAt, split.endsAt),
+      getActivityHeatmap(puuid, split.startsAt, split.endsAt),
+    ]);
 
   const totalGames = overview.wins + overview.losses;
   const winratePct =
@@ -101,20 +110,28 @@ export default async function PlayerPage({
           <RankHistoryChart points={rankPoints} />
         </section>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <section>
-            <h2 className="mb-3 text-lg font-semibold text-zinc-200">
-              🎮 Recent Matches
-            </h2>
-            <RecentMatches matches={recent} />
-          </section>
-          <section>
-            <h2 className="mb-3 text-lg font-semibold text-zinc-200">
-              🏹 Champions
-            </h2>
-            <ChampionStatsTable stats={champStats} />
-          </section>
+        <section className="mb-8">
+          <h2 className="mb-3 text-lg font-semibold text-zinc-200">
+            📊 Form
+          </h2>
+          <StatSparklineRow points={weeklyTrends} squadAvg={squadAvg} />
+        </section>
+
+        <section className="mb-8">
+          <ActivityHeatmap cells={heatmapCells} title="📅 When you play" />
+        </section>
+
+        <div className="mb-8 grid gap-6 lg:grid-cols-[1fr_22rem]">
+          <ChampionDonut stats={champStats} />
+          <ChampionStatsTable stats={champStats} />
         </div>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-zinc-200">
+            🎮 Recent Matches
+          </h2>
+          <RecentMatches matches={recent} />
+        </section>
 
         <footer className="mt-10 text-xs text-zinc-600">
           {overview.lastSyncedAt

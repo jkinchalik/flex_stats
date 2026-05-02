@@ -1,3 +1,4 @@
+import { ActivityHeatmap } from "@/components/activity-heatmap";
 import { AwardCard } from "@/components/award-card";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { LpRaceChart } from "@/components/lp-race-chart";
@@ -5,12 +6,15 @@ import { MatchFeed } from "@/components/match-feed";
 import { PremadeRecord } from "@/components/premade-record";
 import { SynergyMatrix } from "@/components/synergy-matrix";
 import { Tabs } from "@/components/tabs";
+import { WeeklyRecap } from "@/components/weekly-recap";
 import { ROSTER } from "@/config/roster";
+import { getActivityHeatmap } from "@/lib/stats/activity";
 import { computeAwards } from "@/lib/stats/awards";
 import { getLeaderboard } from "@/lib/stats/leaderboard";
 import { getRecentSquadMatches } from "@/lib/stats/feed";
 import { getPremadeRecord, type PremadeSummary } from "@/lib/stats/premades";
 import { getRankRaceData } from "@/lib/stats/race";
+import { getWeeklyRecap, type WeeklyRecap as WeeklyRecapData } from "@/lib/stats/recap";
 import { getActiveSplit } from "@/lib/stats/splits";
 import { getDuoSynergy } from "@/lib/stats/synergy";
 
@@ -37,15 +41,28 @@ export default async function Home() {
   const split = getActiveSplit();
   const dbReady = Boolean(process.env.DATABASE_URL);
 
-  const [rows, raceData, synergy, premades, feed] = dbReady
+  const EMPTY_RECAP: WeeklyRecapData = {
+    weekStart: new Date(),
+    weekEnd: new Date(),
+    mvp: null,
+    biggestMover: null,
+    worstGame: null,
+    hotCold: { hot: null, cold: null },
+  };
+
+  const [rows, raceData, synergy, premades, feed, heatmap, recap] = dbReady
     ? await Promise.all([
         getLeaderboard(split.startsAt, split.endsAt).catch(() => []),
         getRankRaceData(split.startsAt, split.endsAt).catch(() => []),
         getDuoSynergy(split.startsAt, split.endsAt).catch(() => []),
         getPremadeRecord(split.startsAt, split.endsAt).catch(() => EMPTY_PREMADE),
         getRecentSquadMatches(25).catch(() => []),
+        getActivityHeatmap(null, split.startsAt, split.endsAt).catch(() => []),
+        getWeeklyRecap(new Date(), split.startsAt, split.endsAt).catch(
+          () => EMPTY_RECAP,
+        ),
       ])
-    : [[], [], [], EMPTY_PREMADE, []];
+    : [[], [], [], EMPTY_PREMADE, [], [], EMPTY_RECAP];
 
   const awards = dbReady
     ? await computeAwards(rows, split.startsAt, split.endsAt).catch(() => [])
@@ -102,16 +119,10 @@ export default async function Home() {
   const synergyTab = <SynergyMatrix players={players} pairs={synergy} />;
 
   const activityTab = (
-    <section className="rounded-xl border border-white/10 bg-zinc-900/40 p-8 text-center text-sm text-zinc-500">
-      Activity heatmap coming soon — when each friend plays, day × hour.
-    </section>
+    <ActivityHeatmap cells={heatmap} title="📅 Squad activity (when the boys play)" />
   );
 
-  const recapTab = (
-    <section className="rounded-xl border border-white/10 bg-zinc-900/40 p-8 text-center text-sm text-zinc-500">
-      Weekly recap coming soon — MVP of the week, biggest mover, hot/cold form.
-    </section>
-  );
+  const recapTab = <WeeklyRecap recap={recap} />;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
