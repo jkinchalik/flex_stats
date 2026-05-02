@@ -19,6 +19,7 @@ export const players = pgTable(
     tagLine: text("tag_line"),
     summonerId: text("summoner_id"),
     displayName: text("display_name"),
+    avatarUrl: text("avatar_url"),
     lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
   },
   (table) => [index("players_riot_id_idx").on(table.riotId)],

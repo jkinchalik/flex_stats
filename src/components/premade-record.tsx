@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { PremadeSummary } from "@/lib/stats/premades";
-import { colorForPuuid } from "@/lib/stats/_shared/palette";
 import { formatRelative, formatDuration } from "@/lib/stats/_shared/buckets";
+import { Avatar } from "@/components/avatar";
 
 type Props = {
   summary: PremadeSummary;
@@ -16,7 +16,7 @@ export function PremadeRecord({ summary, minStack }: Props) {
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-zinc-100">
-          🎯 Squad Premades ({minStack}+ stack)
+          Squad Premades ({minStack}+ stack)
         </h2>
         <p className="mt-0.5 text-sm text-zinc-400">
           When the boys queue together this split
@@ -70,27 +70,21 @@ export function PremadeRecord({ summary, minStack }: Props) {
                   {match.win ? "W" : "L"}
                 </span>
 
-                {/* Friend initials in colored circles */}
+                {/* Friend avatars */}
                 <div className="flex items-center gap-1">
-                  {match.friends.map((friend) => {
-                    const color = colorForPuuid(friend.puuid);
-                    const initials = friend.displayName
-                      .split(/\s+/)
-                      .map((w) => w[0] ?? "")
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase();
-                    return (
-                      <span
-                        key={friend.puuid}
-                        title={`${friend.displayName} — ${friend.championName} (${friend.kills}/${friend.deaths}/${friend.assists})`}
-                        style={{ backgroundColor: color + "26", color, borderColor: color + "4d" }}
-                        className="flex h-6 w-6 items-center justify-center rounded-full border text-[10px] font-bold"
-                      >
-                        {initials || "?"}
-                      </span>
-                    );
-                  })}
+                  {match.friends.map((f) => (
+                    <span
+                      key={f.puuid}
+                      title={`${f.displayName} — ${f.championName} (${f.kills}/${f.deaths}/${f.assists})`}
+                    >
+                      <Avatar
+                        puuid={f.puuid}
+                        displayName={f.displayName}
+                        avatarUrl={f.avatarUrl}
+                        size={24}
+                      />
+                    </span>
+                  ))}
                 </div>
 
                 {/* Duration */}

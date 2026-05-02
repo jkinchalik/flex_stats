@@ -12,6 +12,7 @@ export type PremadeMatch = {
   friends: {
     puuid: string;
     displayName: string;
+    avatarUrl: string | null;
     championName: string;
     kills: number;
     deaths: number;
@@ -41,6 +42,7 @@ type ParticipantRow = {
   teamId: number;
   puuid: string;
   displayName: string | null;
+  avatarUrl: string | null;
   championName: string | null;
   kills: number;
   deaths: number;
@@ -98,6 +100,7 @@ export async function getPremadeRecord(
         mp.team_id    AS "teamId",
         mp.puuid      AS "puuid",
         COALESCE(p.display_name, p.game_name, p.riot_id) AS "displayName",
+        p.avatar_url  AS "avatarUrl",
         mp.champion_name AS "championName",
         mp.kills      AS "kills",
         mp.deaths     AS "deaths",
@@ -126,6 +129,7 @@ export async function getPremadeRecord(
     const friends = rawFriends.map((f) => ({
       puuid: f.puuid,
       displayName: f.displayName ?? f.puuid,
+      avatarUrl: f.avatarUrl,
       championName: f.championName ?? "",
       kills: f.kills,
       deaths: f.deaths,

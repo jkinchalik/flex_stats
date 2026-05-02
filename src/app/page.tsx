@@ -2,6 +2,7 @@ import { ActivityHeatmap } from "@/components/activity-heatmap";
 import { AwardCard } from "@/components/award-card";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { LpRaceChart } from "@/components/lp-race-chart";
+import { ManageSquad } from "@/components/manage-squad";
 import { MatchFeed } from "@/components/match-feed";
 import { PerformanceTabs } from "@/components/performance-tabs";
 import { PremadeRecord } from "@/components/premade-record";
@@ -9,7 +10,7 @@ import { RecordsGrid } from "@/components/records-grid";
 import { SynergyMatrix } from "@/components/synergy-matrix";
 import { Tabs } from "@/components/tabs";
 import { WeeklyRecap } from "@/components/weekly-recap";
-import { ROSTER } from "@/config/roster";
+import { listRoster } from "@/lib/players/actions";
 import { getActivityHeatmap } from "@/lib/stats/activity";
 import { computeAwards } from "@/lib/stats/awards";
 import { getLeaderboard } from "@/lib/stats/leaderboard";
@@ -79,6 +80,7 @@ export default async function Home() {
     recap,
     perfBoards,
     recordsData,
+    roster,
   ] = dbReady
     ? await Promise.all([
         getLeaderboard(split.startsAt, split.endsAt).catch(() => []),
@@ -96,6 +98,7 @@ export default async function Home() {
         getRecordsAndShame(split.startsAt, split.endsAt).catch(
           () => EMPTY_RECORDS,
         ),
+        listRoster().catch(() => []),
       ])
     : [
         [],
@@ -107,6 +110,7 @@ export default async function Home() {
         EMPTY_RECAP,
         EMPTY_BOARDS,
         EMPTY_RECORDS,
+        [],
       ];
 
   const awards = dbReady
@@ -167,6 +171,8 @@ export default async function Home() {
 
   const recapTab = <WeeklyRecap recap={recap} />;
 
+  const manageTab = <ManageSquad initialRoster={roster} />;
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -203,11 +209,12 @@ export default async function Home() {
             { id: "synergy", label: "🤝 Synergy", content: synergyTab },
             { id: "activity", label: "📅 Activity", content: activityTab },
             { id: "recap", label: "📰 Recap", content: recapTab },
+            { id: "manage", label: "🛠️ Manage", content: manageTab },
           ]}
         />
 
         <footer className="mt-16 border-t border-white/5 pt-6 text-center text-xs text-zinc-500">
-          Tracking {ROSTER.length} friend{ROSTER.length === 1 ? "" : "s"} ·
+          Tracking {roster.length} friend{roster.length === 1 ? "" : "s"} ·
           Updated hourly · Made with{" "}
           <span className="text-rose-400">❤</span>
         </footer>

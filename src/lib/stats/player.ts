@@ -15,6 +15,7 @@ export type PlayerOverview = {
   displayName: string;
   gameName: string | null;
   tagLine: string | null;
+  avatarUrl: string | null;
   tier: string | null;
   division: string | null;
   lp: number;
@@ -69,6 +70,7 @@ export async function getPlayerOverview(
       gameName: players.gameName,
       tagLine: players.tagLine,
       displayName: players.displayName,
+      avatarUrl: players.avatarUrl,
       lastSyncedAt: players.lastSyncedAt,
       tier: currentRank.tier,
       division: currentRank.division,
@@ -92,6 +94,7 @@ export async function getPlayerOverview(
     displayName,
     gameName: row.gameName,
     tagLine: row.tagLine,
+    avatarUrl: row.avatarUrl ?? null,
     tier: row.tier,
     division: row.division,
     lp: row.lp ?? 0,

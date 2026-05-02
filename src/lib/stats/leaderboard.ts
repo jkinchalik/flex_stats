@@ -12,6 +12,7 @@ export type LeaderboardRow = {
   puuid: string;
   displayName: string;
   riotId: string;
+  avatarUrl: string | null;
   tier: string | null;
   division: string | null;
   lp: number;
@@ -57,6 +58,7 @@ export async function getLeaderboard(
       riotId: players.riotId,
       gameName: players.gameName,
       displayName: players.displayName,
+      avatarUrl: players.avatarUrl,
       tier: currentRank.tier,
       division: currentRank.division,
       lp: currentRank.lp,
@@ -123,6 +125,7 @@ export async function getLeaderboard(
       puuid: p.puuid,
       displayName,
       riotId: p.riotId,
+      avatarUrl: p.avatarUrl ?? null,
       tier: p.tier,
       division: p.division,
       lp: p.lp ?? 0,

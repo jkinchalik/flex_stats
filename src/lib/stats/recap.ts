@@ -5,6 +5,7 @@ import { rankSortKey } from "@/lib/stats/ranks";
 export type RecapEntry = {
   puuid: string;
   displayName: string;
+  avatarUrl: string | null;
   value: string;
   detail?: string;
 };
@@ -21,6 +22,7 @@ export type WeeklyRecap = {
 type WeekStat = {
   puuid: string;
   displayName: string;
+  avatarUrl: string | null;
   games: number;
   wins: number;
   kda: number;
@@ -29,6 +31,7 @@ type WeekStat = {
 type WorstGameRow = {
   puuid: string;
   displayName: string;
+  avatarUrl: string | null;
   championName: string;
   win: boolean;
   deaths: number;
@@ -37,6 +40,7 @@ type WorstGameRow = {
 type RankSnapshot = {
   puuid: string;
   displayName: string;
+  avatarUrl: string | null;
   tier: string | null;
   division: string | null;
   lp: number;
@@ -45,6 +49,7 @@ type RankSnapshot = {
 type LastFiveRow = {
   puuid: string;
   displayName: string;
+  avatarUrl: string | null;
   splitGames: number;
   splitWins: number;
   recentGames: number;
@@ -63,6 +68,7 @@ export async function getWeeklyRecap(
     SELECT
       mp.puuid AS "puuid",
       COALESCE(p.display_name, p.game_name, p.riot_id) AS "displayName",
+      p.avatar_url AS "avatarUrl",
       COUNT(*)::int AS "games",
       SUM(CASE WHEN mp.win THEN 1 ELSE 0 END)::int AS "wins",
       (SUM(mp.kills + mp.assists)::float / GREATEST(SUM(mp.deaths), 1)) AS "kda"
@@ -71,7 +77,7 @@ export async function getWeeklyRecap(
     JOIN players p ON p.puuid = mp.puuid
     WHERE m.game_creation >= ${weekStart}
       AND m.game_creation <  ${weekEnd}
-    GROUP BY mp.puuid, "displayName"
+    GROUP BY mp.puuid, "displayName", p.avatar_url
   `);
 
   let mvp: RecapEntry | null = null;
@@ -86,6 +92,7 @@ export async function getWeeklyRecap(
       mvp = {
         puuid: r.puuid,
         displayName: r.displayName,
+        avatarUrl: r.avatarUrl,
         value: `${r.games} games · ${wr}% WR`,
         detail: `${Number(r.kda).toFixed(1)} KDA`,
       };
@@ -96,6 +103,7 @@ export async function getWeeklyRecap(
     SELECT DISTINCT ON (rh.puuid)
       rh.puuid AS "puuid",
       COALESCE(p.display_name, p.game_name, p.riot_id) AS "displayName",
+      p.avatar_url AS "avatarUrl",
       rh.tier AS "tier",
       rh.division AS "division",
       rh.lp AS "lp"
@@ -110,6 +118,7 @@ export async function getWeeklyRecap(
     SELECT DISTINCT ON (rh.puuid)
       rh.puuid AS "puuid",
       COALESCE(p.display_name, p.game_name, p.riot_id) AS "displayName",
+      p.avatar_url AS "avatarUrl",
       rh.tier AS "tier",
       rh.division AS "division",
       rh.lp AS "lp"
@@ -135,6 +144,7 @@ export async function getWeeklyRecap(
       biggestMover = {
         puuid,
         displayName: l.displayName,
+        avatarUrl: l.avatarUrl,
         value: `${delta >= 0 ? "+" : ""}${delta} pts`,
       };
     }
@@ -144,6 +154,7 @@ export async function getWeeklyRecap(
     SELECT
       mp.puuid AS "puuid",
       COALESCE(p.display_name, p.game_name, p.riot_id) AS "displayName",
+      p.avatar_url AS "avatarUrl",
       mp.champion_name AS "championName",
       mp.win AS "win",
       mp.deaths AS "deaths"
@@ -161,6 +172,7 @@ export async function getWeeklyRecap(
     ? {
         puuid: worstGameRows.rows[0].puuid,
         displayName: worstGameRows.rows[0].displayName,
+        avatarUrl: worstGameRows.rows[0].avatarUrl,
         value: `${worstGameRows.rows[0].deaths} deaths`,
         detail: `${worstGameRows.rows[0].championName ?? "Unknown"} · ${worstGameRows.rows[0].win ? "W" : "L"}`,
       }
@@ -200,6 +212,7 @@ export async function getWeeklyRecap(
     SELECT
       ss.puuid AS "puuid",
       COALESCE(p.display_name, p.game_name, p.riot_id) AS "displayName",
+      p.avatar_url AS "avatarUrl",
       ss.games AS "splitGames",
       ss.wins AS "splitWins",
       COALESCE(ra.games, 0) AS "recentGames",
@@ -225,6 +238,7 @@ export async function getWeeklyRecap(
       hot = {
         puuid: r.puuid,
         displayName: r.displayName,
+        avatarUrl: r.avatarUrl,
         value: `${r.recentWins}-${losses}`,
         detail: `+${deltaPct}% vs avg`,
       };
@@ -234,6 +248,7 @@ export async function getWeeklyRecap(
       cold = {
         puuid: r.puuid,
         displayName: r.displayName,
+        avatarUrl: r.avatarUrl,
         value: `${r.recentWins}-${losses}`,
         detail: `${deltaPct}% vs avg`,
       };

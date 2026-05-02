@@ -2,15 +2,16 @@ import Link from "next/link";
 import { formatRank, TIER_COLORS } from "@/lib/stats/ranks";
 import type { LeaderboardRow } from "@/lib/stats/leaderboard";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/avatar";
 
 type Props = {
   rows: LeaderboardRow[];
 };
 
 function rankBadge(position: number): string {
-  if (position === 1) return "🥇";
-  if (position === 2) return "🥈";
-  if (position === 3) return "🥉";
+  if (position === 1) return "";
+  if (position === 2) return "";
+  if (position === 3) return "";
   return String(position);
 }
 
@@ -73,7 +74,8 @@ export function LeaderboardTable({ rows }: Props) {
                       href={`/players/${row.puuid}`}
                       className="block"
                     >
-                      <div className="font-semibold text-zinc-100 group-hover:text-amber-300">
+                      <div className="inline-flex items-center gap-2 font-semibold text-zinc-100 group-hover:text-amber-300">
+                        <Avatar puuid={row.puuid} displayName={row.displayName} avatarUrl={row.avatarUrl} size={28} />
                         {row.displayName}
                       </div>
                       <div className="text-xs text-zinc-500">{row.riotId}</div>
@@ -111,7 +113,7 @@ export function LeaderboardTable({ rows }: Props) {
                         {row.kda.toFixed(1)}
                       </div>
                       <div className="text-xs text-zinc-500">
-                        {row.avgKills.toFixed(1)} / {row.avgDeaths.toFixed(1)} /{" "}
+                        {row.avgKills.toFixed(1)} / {row.avgDeaths.toFixed(1)} /
                         {row.avgAssists.toFixed(1)}
                       </div>
                     </Link>

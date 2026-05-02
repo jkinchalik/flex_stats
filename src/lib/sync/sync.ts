@@ -8,13 +8,9 @@ import {
   players,
   rankHistory,
 } from "@/lib/db/schema";
-import { getAccountByRiotId } from "@/lib/riot/account";
 import { getFlexEntry } from "@/lib/riot/league";
 import { getFlexMatchIdsByPuuid, getMatchByIdSafe } from "@/lib/riot/match";
-import { getSummonerByPuuid } from "@/lib/riot/summoner";
 import type { MatchDto } from "@/lib/riot/types";
-import type { RosterEntry } from "@/config/roster";
-import { ROSTER } from "@/config/roster";
 
 export type SyncSummary = {
   playersResolved: number;
@@ -24,9 +20,9 @@ export type SyncSummary = {
   errors: { riotId?: string; puuid?: string; step: string; message: string }[];
 };
 
-type ResolvedPlayer = {
-  entry: RosterEntry;
+type RosterPlayer = {
   puuid: string;
+  riotId: string;
 };
 
 function emptySummary(): SyncSummary {
@@ -43,98 +39,22 @@ function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-function parseRiotId(riotId: string): { gameName: string; tagLine: string } | null {
-  const idx = riotId.lastIndexOf("#");
-  if (idx <= 0 || idx === riotId.length - 1) return null;
-  return {
-    gameName: riotId.slice(0, idx),
-    tagLine: riotId.slice(idx + 1),
-  };
-}
-
-async function resolvePlayer(
-  entry: RosterEntry,
-  summary: SyncSummary,
-): Promise<ResolvedPlayer | null> {
-  const parsed = parseRiotId(entry.riotId);
-  if (!parsed) {
-    summary.errors.push({
-      riotId: entry.riotId,
-      step: "parseRiotId",
-      message: `Invalid riotId format: ${entry.riotId}`,
-    });
-    return null;
-  }
-
-  const existing = await db
-    .select()
-    .from(players)
-    .where(eq(players.riotId, entry.riotId))
-    .limit(1);
-
-  if (existing.length > 0 && existing[0].puuid) {
-    summary.playersResolved += 1;
-    return { entry, puuid: existing[0].puuid };
-  }
-
-  try {
-    const account = await getAccountByRiotId(parsed.gameName, parsed.tagLine);
-    let summonerId: string | null = null;
-    try {
-      const summoner = await getSummonerByPuuid(account.puuid);
-      summonerId = summoner.id;
-    } catch (err) {
-      summary.errors.push({
-        riotId: entry.riotId,
-        puuid: account.puuid,
-        step: "getSummonerByPuuid",
-        message: errorMessage(err),
-      });
-    }
-
-    await db
-      .insert(players)
-      .values({
-        puuid: account.puuid,
-        riotId: entry.riotId,
-        gameName: account.gameName,
-        tagLine: account.tagLine,
-        summonerId,
-        displayName: entry.displayName ?? null,
-      })
-      .onConflictDoUpdate({
-        target: players.puuid,
-        set: {
-          riotId: entry.riotId,
-          gameName: account.gameName,
-          tagLine: account.tagLine,
-          summonerId,
-          displayName: entry.displayName ?? null,
-        },
-      });
-
-    summary.playersResolved += 1;
-    return { entry, puuid: account.puuid };
-  } catch (err) {
-    summary.errors.push({
-      riotId: entry.riotId,
-      step: "getAccountByRiotId",
-      message: errorMessage(err),
-    });
-    return null;
-  }
+async function loadRosterFromDb(): Promise<RosterPlayer[]> {
+  return db
+    .select({ puuid: players.puuid, riotId: players.riotId })
+    .from(players);
 }
 
 async function fetchMatchIdsForPlayer(
-  resolved: ResolvedPlayer,
+  player: RosterPlayer,
   summary: SyncSummary,
 ): Promise<string[]> {
   try {
-    return await getFlexMatchIdsByPuuid(resolved.puuid, { count: 20 });
+    return await getFlexMatchIdsByPuuid(player.puuid, { count: 20 });
   } catch (err) {
     summary.errors.push({
-      riotId: resolved.entry.riotId,
-      puuid: resolved.puuid,
+      riotId: player.riotId,
+      puuid: player.puuid,
       step: "getFlexMatchIdsByPuuid",
       message: errorMessage(err),
     });
@@ -203,10 +123,10 @@ async function insertMatchAndParticipants(
 }
 
 async function refreshRank(
-  resolved: ResolvedPlayer,
+  player: RosterPlayer,
   summary: SyncSummary,
 ): Promise<void> {
-  const { puuid } = resolved;
+  const { puuid } = player;
   let tier: string | null = null;
   let division: string | null = null;
   let lp = 0;
@@ -224,7 +144,7 @@ async function refreshRank(
     }
   } catch (err) {
     summary.errors.push({
-      riotId: resolved.entry.riotId,
+      riotId: player.riotId,
       puuid,
       step: "getFlexEntry",
       message: errorMessage(err),
@@ -299,16 +219,12 @@ async function touchLastSyncedAt(puuid: string): Promise<void> {
 export async function syncRoster(): Promise<SyncSummary> {
   const summary = emptySummary();
 
-  const resolved: ResolvedPlayer[] = [];
-  for (const entry of ROSTER) {
-    const r = await resolvePlayer(entry, summary);
-    if (r) resolved.push(r);
-  }
-
-  const rosterPuuids = new Set(resolved.map((r) => r.puuid));
+  const roster = await loadRosterFromDb();
+  summary.playersResolved = roster.length;
+  const rosterPuuids = new Set(roster.map((r) => r.puuid));
 
   const playerMatchIds: string[][] = [];
-  for (const r of resolved) {
+  for (const r of roster) {
     const ids = await fetchMatchIdsForPlayer(r, summary);
     playerMatchIds.push(ids);
   }
@@ -339,13 +255,13 @@ export async function syncRoster(): Promise<SyncSummary> {
     }
   }
 
-  for (const r of resolved) {
+  for (const r of roster) {
     await refreshRank(r, summary);
     try {
       await touchLastSyncedAt(r.puuid);
     } catch (err) {
       summary.errors.push({
-        riotId: r.entry.riotId,
+        riotId: r.riotId,
         puuid: r.puuid,
         step: "touchLastSyncedAt",
         message: errorMessage(err),
@@ -356,17 +272,27 @@ export async function syncRoster(): Promise<SyncSummary> {
   return summary;
 }
 
-export async function syncPlayer(
-  entry: RosterEntry,
-): Promise<Partial<SyncSummary>> {
+export async function syncSinglePlayer(puuid: string): Promise<SyncSummary> {
   const summary = emptySummary();
 
-  const resolved = await resolvePlayer(entry, summary);
-  if (!resolved) return summary;
+  const rows = await db
+    .select({ puuid: players.puuid, riotId: players.riotId })
+    .from(players)
+    .where(eq(players.puuid, puuid))
+    .limit(1);
+  const player = rows[0];
+  if (!player) {
+    summary.errors.push({
+      puuid,
+      step: "loadPlayer",
+      message: `Player ${puuid} not found in DB`,
+    });
+    return summary;
+  }
+  summary.playersResolved = 1;
 
-  const rosterPuuids = new Set<string>([resolved.puuid]);
-
-  const ids = await fetchMatchIdsForPlayer(resolved, summary);
+  const rosterPuuids = new Set<string>([puuid]);
+  const ids = await fetchMatchIdsForPlayer(player, summary);
   const newIds = await filterNewMatchIds(ids);
 
   for (const id of newIds) {
@@ -375,8 +301,8 @@ export async function syncPlayer(
       match = await getMatchByIdSafe(id);
     } catch (err) {
       summary.errors.push({
-        riotId: entry.riotId,
-        puuid: resolved.puuid,
+        riotId: player.riotId,
+        puuid,
         step: "getMatchByIdSafe",
         message: `${id}: ${errorMessage(err)}`,
       });
@@ -388,22 +314,21 @@ export async function syncPlayer(
       if (wasInserted) summary.newMatchesInserted += 1;
     } catch (err) {
       summary.errors.push({
-        riotId: entry.riotId,
-        puuid: resolved.puuid,
+        riotId: player.riotId,
+        puuid,
         step: "insertMatchAndParticipants",
         message: `${id}: ${errorMessage(err)}`,
       });
     }
   }
 
-  await refreshRank(resolved, summary);
-
+  await refreshRank(player, summary);
   try {
-    await touchLastSyncedAt(resolved.puuid);
+    await touchLastSyncedAt(puuid);
   } catch (err) {
     summary.errors.push({
-      riotId: entry.riotId,
-      puuid: resolved.puuid,
+      riotId: player.riotId,
+      puuid,
       step: "touchLastSyncedAt",
       message: errorMessage(err),
     });

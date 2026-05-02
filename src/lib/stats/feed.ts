@@ -6,6 +6,7 @@ export type FeedMatch = {
   matchId: string;
   puuid: string;
   displayName: string;
+  avatarUrl: string | null;
   championName: string;
   win: boolean;
   kills: number;
@@ -26,6 +27,7 @@ export async function getRecentSquadMatches(limit = 25): Promise<FeedMatch[]> {
       displayName: players.displayName,
       gameName: players.gameName,
       riotId: players.riotId,
+      avatarUrl: players.avatarUrl,
       championName: matchParticipants.championName,
       championId: matchParticipants.championId,
       win: matchParticipants.win,
@@ -48,6 +50,7 @@ export async function getRecentSquadMatches(limit = 25): Promise<FeedMatch[]> {
     matchId: r.matchId,
     puuid: r.puuid,
     displayName: r.displayName ?? r.gameName ?? r.riotId,
+    avatarUrl: r.avatarUrl,
     championName: r.championName ?? `Champion ${r.championId}`,
     win: r.win,
     kills: r.kills,

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { Avatar } from "@/components/avatar";
 import { ActivityHeatmap } from "@/components/activity-heatmap";
 import { ChampionDonut } from "@/components/champion-donut";
 import { ChampionStatsTable } from "@/components/champion-stats-table";
@@ -80,9 +81,12 @@ export default async function PlayerPage({
 
         <header className="mb-8 flex flex-col gap-4 rounded-xl border border-white/10 bg-zinc-900/60 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-50">
-              {overview.displayName}
-            </h1>
+            <div className="flex items-center gap-3">
+              <Avatar puuid={puuid} displayName={overview.displayName} avatarUrl={overview.avatarUrl} size={56} />
+              <h1 className="text-3xl font-bold tracking-tight text-zinc-50">
+                {overview.displayName}
+              </h1>
+            </div>
             <p className="mt-1 text-sm text-zinc-500">{overview.riotId}</p>
             <p
               className={`mt-3 text-base font-semibold ${tierColor(overview.tier)}`}

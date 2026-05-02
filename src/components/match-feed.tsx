@@ -1,8 +1,8 @@
 import type { FeedMatch } from "@/lib/stats/feed";
 import { formatRelative } from "@/lib/stats/_shared/buckets";
-import { colorForPuuid } from "@/lib/stats/_shared/palette";
 import { ChampionIcon } from "@/components/champion-icon";
 import { MatchDetailPanel } from "@/components/match-detail-panel";
+import { Avatar } from "@/components/avatar";
 
 type Props = {
   matches: FeedMatch[];
@@ -29,25 +29,17 @@ export function MatchFeed({ matches }: Props) {
       ) : (
         <ul className="divide-y divide-white/5">
           {matches.map((m) => {
-            const color = colorForPuuid(m.puuid);
-            const initial = m.displayName.charAt(0).toUpperCase();
-
             return (
               <li key={`${m.matchId}-${m.puuid}`}>
                 <details className="group">
                   <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5">
                     {/* Expand indicator */}
                     <span className="shrink-0 select-none text-zinc-500 transition-transform group-open:rotate-90">
-                      ▶
+                      
                     </span>
 
-                    {/* Friend initial circle */}
-                    <span
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-zinc-900"
-                      style={{ backgroundColor: color }}
-                    >
-                      {initial}
-                    </span>
+                    {/* Player avatar */}
+                    <Avatar puuid={m.puuid} displayName={m.displayName} avatarUrl={m.avatarUrl} size={28} className="shrink-0" />
 
                     {/* Display name */}
                     <span className="w-28 shrink-0 truncate font-medium text-zinc-100">

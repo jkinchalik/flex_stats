@@ -1,15 +1,10 @@
 import type { RecapEntry, WeeklyRecap } from "@/lib/stats/recap";
-import { colorForPuuid } from "@/lib/stats/_shared/palette";
+import { Avatar } from "@/components/avatar";
 
 type Props = { recap: WeeklyRecap };
 
 function formatDate(d: Date): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function initial(name: string): string {
-  const ch = name.trim().charAt(0).toUpperCase();
-  return ch || "?";
 }
 
 function Tile({
@@ -43,13 +38,7 @@ function Tile({
         {label}
       </div>
       <div className="mt-3 flex items-center gap-2">
-        <span
-          className="flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-zinc-900"
-          style={{ backgroundColor: colorForPuuid(entry.puuid) }}
-          aria-hidden
-        >
-          {initial(entry.displayName)}
-        </span>
+        <Avatar puuid={entry.puuid} displayName={entry.displayName} avatarUrl={entry.avatarUrl ?? null} size={24} />
         <span className="truncate text-sm font-semibold text-zinc-100">
           {entry.displayName}
         </span>
@@ -67,10 +56,10 @@ function Tile({
 export function WeeklyRecap({ recap }: Props) {
   const hotOrCold =
     recap.hotCold.hot
-      ? { emoji: "🔥", label: "Hot Streak", entry: recap.hotCold.hot, accent: "border-rose-400/30" }
+      ? { emoji: "", label: "Hot Streak", entry: recap.hotCold.hot, accent: "border-rose-400/30" }
       : recap.hotCold.cold
-        ? { emoji: "🥶", label: "Cold Streak", entry: recap.hotCold.cold, accent: "border-cyan-400/30" }
-        : { emoji: "🌡️", label: "Hot / Cold", entry: null, accent: "border-white/10" };
+        ? { emoji: "", label: "Cold Streak", entry: recap.hotCold.cold, accent: "border-cyan-400/30" }
+        : { emoji: "", label: "Hot / Cold", entry: null, accent: "border-white/10" };
 
   return (
     <section className="rounded-xl border border-white/10 bg-zinc-900/40 p-5">
@@ -84,13 +73,13 @@ export function WeeklyRecap({ recap }: Props) {
       </header>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Tile
-          emoji="👑"
+          emoji=""
           label="MVP"
           accent="border-amber-400/30"
           entry={recap.mvp}
         />
         <Tile
-          emoji="🚀"
+          emoji=""
           label="Biggest Mover"
           accent={
             recap.biggestMover && recap.biggestMover.value.startsWith("+")
@@ -100,7 +89,7 @@ export function WeeklyRecap({ recap }: Props) {
           entry={recap.biggestMover}
         />
         <Tile
-          emoji="💀"
+          emoji=""
           label="Worst Single Game"
           accent="border-rose-400/30"
           entry={recap.worstGame}
