@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChampionIcon } from "@/components/champion-icon";
 import {
   getMatchDetail,
   type MatchDetail,
@@ -12,14 +13,11 @@ type Props = {
 };
 
 function ParticipantRow({ p }: { p: MatchDetailParticipant }) {
-  const prefix = p.puuid.slice(0, 8);
   return (
     <div className="flex items-center justify-between gap-2 px-2 py-1 text-xs">
-      <span className="w-20 shrink-0 truncate font-medium text-zinc-200">
-        {p.championName}
-      </span>
-      <span className="w-16 shrink-0 truncate text-zinc-400" title={p.puuid}>
-        {prefix}…
+      <span className="flex w-28 shrink-0 items-center gap-1.5 truncate font-medium text-zinc-200">
+        <ChampionIcon name={p.championName} size={20} />
+        <span className="truncate">{p.championName}</span>
       </span>
       <span className="tabular-nums text-zinc-300">
         {p.kills}/{p.deaths}/{p.assists}
@@ -95,7 +93,7 @@ export function MatchDetailPanel({ matchId }: Props) {
     return (
       <div className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-zinc-400">
         <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300" />
-        Loading match…
+        Loading match...
       </div>
     );
   }

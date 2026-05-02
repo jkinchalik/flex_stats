@@ -1,4 +1,5 @@
 import type { ChampionStat } from "@/lib/stats/player";
+import { ChampionIcon } from "@/components/champion-icon";
 
 type Props = {
   stats: ChampionStat[];
@@ -35,7 +36,10 @@ export function ChampionStatsTable({ stats }: Props) {
                 className="border-t border-white/5 even:bg-white/5"
               >
                 <td className="px-3 py-2 font-medium text-zinc-100">
-                  {s.championName}
+                  <span className="flex items-center gap-2">
+                    <ChampionIcon name={s.championName} size={24} />
+                    <span>{s.championName}</span>
+                  </span>
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums text-zinc-200">
                   {s.games}

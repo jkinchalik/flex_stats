@@ -1,5 +1,6 @@
 import type { RecentMatch } from "@/lib/stats/player";
 import { formatRelative, formatDuration } from "@/lib/stats/_shared/buckets";
+import { ChampionIcon } from "@/components/champion-icon";
 
 type Props = {
   matches: RecentMatch[];
@@ -47,7 +48,10 @@ export function RecentMatches({ matches }: Props) {
                   </span>
                 </td>
                 <td className="px-3 py-2 font-medium text-zinc-100">
-                  {m.championName}
+                  <span className="flex items-center gap-2">
+                    <ChampionIcon name={m.championName} size={24} />
+                    <span>{m.championName}</span>
+                  </span>
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums text-zinc-200">
                   {m.kills}/{m.deaths}/{m.assists}

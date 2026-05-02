@@ -1,6 +1,7 @@
 import type { FeedMatch } from "@/lib/stats/feed";
 import { formatRelative } from "@/lib/stats/_shared/buckets";
 import { colorForPuuid } from "@/lib/stats/_shared/palette";
+import { ChampionIcon } from "@/components/champion-icon";
 import { MatchDetailPanel } from "@/components/match-detail-panel";
 
 type Props = {
@@ -65,8 +66,9 @@ export function MatchFeed({ matches }: Props) {
                     </span>
 
                     {/* Champion */}
-                    <span className="w-24 shrink-0 truncate text-zinc-200">
-                      {m.championName}
+                    <span className="flex w-32 shrink-0 items-center gap-2 truncate text-zinc-200">
+                      <ChampionIcon name={m.championName} size={22} />
+                      <span className="truncate">{m.championName}</span>
                     </span>
 
                     {/* K/D/A */}

@@ -126,18 +126,12 @@ export default async function Home() {
         </section>
       )}
 
-      <div className="grid gap-12 lg:grid-cols-[1fr_22rem]">
-        <section>
-          <h2 className="mb-4 text-2xl font-bold tracking-tight">
-            <span aria-hidden>🏆</span> Leaderboard
-          </h2>
-          <LeaderboardTable rows={rows} />
-        </section>
-
-        <section>
-          <MatchFeed matches={feed} />
-        </section>
-      </div>
+      <section>
+        <h2 className="mb-4 text-2xl font-bold tracking-tight">
+          <span aria-hidden>🏆</span> Leaderboard
+        </h2>
+        <LeaderboardTable rows={rows} />
+      </section>
 
       <section>
         <PerformanceTabs boards={perfBoards} />
@@ -155,6 +149,8 @@ export default async function Home() {
       </section>
     </div>
   );
+
+  const matchesTab = <MatchFeed matches={feed} />;
 
   const recordsTab = (
     <div className="space-y-12">
@@ -202,6 +198,7 @@ export default async function Home() {
         <Tabs
           tabs={[
             { id: "leaderboard", label: "🏆 Leaderboard", content: leaderboardTab },
+            { id: "matches", label: "📺 Matches", content: matchesTab },
             { id: "records", label: "💎 Records", content: recordsTab },
             { id: "synergy", label: "🤝 Synergy", content: synergyTab },
             { id: "activity", label: "📅 Activity", content: activityTab },
@@ -211,7 +208,7 @@ export default async function Home() {
 
         <footer className="mt-16 border-t border-white/5 pt-6 text-center text-xs text-zinc-500">
           Tracking {ROSTER.length} friend{ROSTER.length === 1 ? "" : "s"} ·
-          Updated every 30 min · Made with{" "}
+          Updated hourly · Made with{" "}
           <span className="text-rose-400">❤</span>
         </footer>
       </div>
