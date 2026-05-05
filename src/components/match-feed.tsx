@@ -95,17 +95,20 @@ export function MatchFeed({ matches }: Props) {
                             {f.displayName}
                           </Link>
                           <span
-                            className={
+                            className={{
                               f.win
                                 ? "inline-flex h-5 w-6 shrink-0 items-center justify-center rounded bg-emerald-500/20 text-xs font-bold text-emerald-300"
                                 : "inline-flex h-5 w-6 shrink-0 items-center justify-center rounded bg-rose-500/20 text-xs font-bold text-rose-300"
-                            }
+                            }}
                           >
                             {f.win ? "W" : "L"}
                           </span>
-                          <span className="flex w-32 shrink-0 items-center gap-2 truncate text-zinc-200">
+                          <span
+                            className="flex w-40 shrink-0 items-center gap-2 truncate text-zinc-200"
+                            title={f.championName}
+                          >
                             <ChampionIcon name={f.championName} size={20} />
-                            <span className="truncate">{f.championName}</span>
+                            <span className="truncate">{f.summonerName}</span>
                           </span>
                           <span className="tabular-nums text-zinc-300">
                             {f.kills}/{f.deaths}/{f.assists}
