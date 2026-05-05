@@ -1,5 +1,7 @@
 export type ParticipantRaw = {
   puuid: string;
+  riotIdGameName: string;
+  riotIdTagline: string;
   teamId: number;
   championId: number;
   championName: string;
@@ -72,6 +74,8 @@ function parseParticipant(raw: unknown): ParticipantRaw {
   const p = isRecord(raw) ? raw : {};
   return {
     puuid: str(p["puuid"]),
+    riotIdGameName: str(p["riotIdGameName"]) || str(p["summonerName"]),
+    riotIdTagline: str(p["riotIdTagline"]),
     teamId: num(p["teamId"]),
     championId: num(p["championId"]),
     championName: str(p["championName"]),

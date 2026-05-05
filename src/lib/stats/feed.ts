@@ -5,7 +5,6 @@ import { matchParticipants, matches, players } from "@/lib/db/schema";
 export type FriendInMatch = {
   puuid: string;
   displayName: string;
-  summonerName: string;
   avatarUrl: string | null;
   championName: string;
   teamId: number;
@@ -73,7 +72,6 @@ export async function getRecentSquadMatches(
     const friend: FriendInMatch = {
       puuid: p.puuid,
       displayName: p.displayName ?? p.gameName ?? p.riotId,
-      summonerName: p.gameName ?? p.riotId,
       avatarUrl: p.avatarUrl,
       championName: p.championName ?? `Champion ${p.championId}`,
       teamId: p.teamId ?? 100,

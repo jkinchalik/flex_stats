@@ -7,6 +7,7 @@ import { extractFromRaw } from "@/lib/stats/_shared/raw";
 
 export type MatchDetailParticipant = {
   puuid: string;
+  summonerName: string;
   teamId: number;
   championName: string;
   championId: number;
@@ -39,6 +40,7 @@ export async function getMatchDetail(
 
   const toParticipant = (p: (typeof participants)[number]): MatchDetailParticipant => ({
     puuid: p.puuid,
+    summonerName: p.riotIdGameName || p.puuid.slice(0, 8),
     teamId: p.teamId,
     championName: p.championName,
     championId: p.championId,

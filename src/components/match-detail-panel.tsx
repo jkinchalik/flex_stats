@@ -15,9 +15,12 @@ type Props = {
 function ParticipantRow({ p }: { p: MatchDetailParticipant }) {
   return (
     <div className="flex items-center justify-between gap-2 px-2 py-1 text-xs">
-      <span className="flex w-28 shrink-0 items-center gap-1.5 truncate font-medium text-zinc-200">
+      <span
+        className="flex w-32 shrink-0 items-center gap-1.5 truncate font-medium text-zinc-200"
+        title={p.championName}
+      >
         <ChampionIcon name={p.championName} size={20} />
-        <span className="truncate">{p.championName}</span>
+        <span className="truncate">{p.summonerName}</span>
       </span>
       <span className="tabular-nums text-zinc-300">
         {p.kills}/{p.deaths}/{p.assists}
@@ -93,7 +96,7 @@ export function MatchDetailPanel({ matchId }: Props) {
     return (
       <div className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-zinc-400">
         <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300" />
-        Loading match...
+        Loading match…
       </div>
     );
   }
